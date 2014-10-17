@@ -32,4 +32,20 @@ sub post_message {
     );
 }
 
+sub update_presence {
+    my ($self, %params) = @_;
+
+    my $presence = $params{presence};
+
+    die "invalid presence type" if $presence !~ /^(away|active)$/;
+
+    my $res = $self->agent->post(
+        $self->base_url . '/api/presence.set' =>
+        form => {
+            presence => $presence,
+	    token => $self->auth_token,
+        }
+    );
+}
+
 1;

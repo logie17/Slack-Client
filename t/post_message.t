@@ -1,7 +1,7 @@
 #! /usr/bin/env perl
 
 use v5.16;
-use Test::Most tests => 2;
+use Test::Most tests => 3;
 use Test::Easy qw(resub);
 use Test::Deep;
 
@@ -10,8 +10,6 @@ my $class = 'Slack::Client';
 use_ok $class;
 
 subtest "verify that we can post a message" => sub {
-	plan => 1;
-	
 	my $rs = resub 'Mojo::UserAgent::post' => sub { };
 
 	my $client = Slack::Client->new(auth_token => 'foo');
@@ -28,4 +26,23 @@ subtest "verify that we can post a message" => sub {
 		     token => 'foo',
 		},
 	]]);
+};
+
+subtest "verify that we can modify our presence" => sub {
+	my $rs = resub 'Mojo::UserAgent::post' => sub { };
+
+	my $client = Slack::Client->new(auth_token => 'foo');
+	
+	$client->update_presence(presence => 'away');
+
+	cmp_deeply($rs->method_args,[[
+		'https://slack.com/api/presence.set',
+		'form',
+		{
+		     presence => 'away',
+		     token => 'foo',
+		},
+	]]);
+
+        throws_ok { $client->update_presence(presence => 'invalid') } qr/invalid presence type/;
 };
